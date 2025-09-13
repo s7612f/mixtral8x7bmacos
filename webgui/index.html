@@ -4,30 +4,61 @@
   <meta charset="utf-8" />
   <title>Mixtral 8x7B WebGUI</title>
   <style>
-    body { font-family: sans-serif; margin: 2em; }
-    #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 1em; margin-top: 1em; }
+    body { font-family: sans-serif; margin: 2em; max-width: 800px; }
+    textarea { width: 100%; }
+    #output { white-space: pre-wrap; border: 1px solid #ccc; padding: 1em; margin-top: 1em; min-height: 4em; }
+    #status { color: #666; margin-top: 0.5em; }
+    button[disabled] { opacity: 0.6; }
   </style>
 </head>
 <body>
   <h1>Mixtral 8x7B WebGUI</h1>
   <textarea id="prompt" rows="4" cols="60">Describe a cat sitting on a pile of money.</textarea><br />
   <button id="send">Send</button>
+  <div id="status"></div>
   <pre id="output"></pre>
   <script>
     async function sendPrompt(text) {
-      const response = await fetch('http://localhost:11434/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: 'mixtral:8x7b', prompt: text })
-      });
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let result = '';
-      while (true) {
-        const { value, done } = await reader.read();
-        if (done) break;
-        result += decoder.decode(value, { stream: true });
-        document.getElementById('output').textContent = result;
+      const outputEl = document.getElementById('output');
+      const statusEl = document.getElementById('status');
+      const sendBtn = document.getElementById('send');
+      outputEl.textContent = '';
+      statusEl.textContent = 'Loading...';
+      sendBtn.disabled = true;
+      try {
+        const response = await fetch('http://localhost:11434/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ model: 'mixtral:8x7b', prompt: text })
+        });
+        if (!response.ok || !response.body) {
+          throw new Error('Request failed');
+        }
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let result = '';
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          const chunk = decoder.decode(value, { stream: true });
+          const lines = chunk.split('\n').filter(Boolean);
+          for (const line of lines) {
+            try {
+              const json = JSON.parse(line);
+              if (json.response) {
+                result += json.response;
+                outputEl.textContent = result;
+              }
+            } catch (e) {
+              console.error('Failed to parse line', line, e);
+            }
+          }
+        }
+      } catch (err) {
+        outputEl.textContent = 'Error: ' + err.message;
+      } finally {
+        statusEl.textContent = '';
+        sendBtn.disabled = false;
       }
     }
     document.getElementById('send').onclick = () => {
