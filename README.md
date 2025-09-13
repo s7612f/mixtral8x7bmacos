@@ -32,6 +32,32 @@ git clone https://github.com/yourname/mixtral8x7bmacos.git && cd mixtral8x7bmaco
    `xcrun notarytool`.
 4. Distribute the resulting `dist/mixtral8x7b.dmg` to end users.
 
+## Automatic DMG Builds with GitHub Actions
+
+### Setup (one time)
+
+1. Ensure the workflow file exists at `.github/workflows/build-dmg.yml` (see
+   repository for an example).
+2. Make sure `build_dmg.sh` and `install.sh` are executable:
+   `chmod +x build_dmg.sh install.sh`.
+3. Commit and push to GitHub.
+
+### Every time you want a new DMG
+
+1. Push your code changes to the `main` branch.
+2. In your GitHub repository, open the **Actions** tab and wait for the build to
+   finish (green checkmark).
+3. Click the completed workflow run and download the `mixtral8x7b-dmg`
+   artifact.
+4. Unzip the artifact to retrieve the DMG.
+
+### For public downloads
+
+1. In your repository, go to **Releases** and choose **Create a new release**.
+2. Create a tag (for example, `v1.0.0`) and publish the release.
+3. The DMG artifact from the workflow will automatically attach to the
+   release for others to download.
+
 ## Installing and Running
 
 1. On another macOS machine, double-click the DMG to mount it. If Gatekeeper

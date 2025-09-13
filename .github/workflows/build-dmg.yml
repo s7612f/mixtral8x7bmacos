@@ -1,0 +1,21 @@
+name: Build DMG
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Make scripts executable
+        run: chmod +x build_dmg.sh install.sh
+      - name: Build DMG
+        run: ./build_dmg.sh
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: mixtral8x7b-dmg
+          path: dist/mixtral8x7b.dmg
