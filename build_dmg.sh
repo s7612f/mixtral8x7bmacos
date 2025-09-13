@@ -1,12 +1,15 @@
 #!/bin/bash
 set -euo pipefail
 
-APP_NAME="MixtralWebGUI"
 VOL_NAME="MixtralWebGUI"
 DMG_NAME="mixtral8x7b.dmg"
 TMPDIR=$(mktemp -d)
 STAGING="$TMPDIR/staging"
 DIST_DIR="dist"
+
+# Ensure required macOS tools exist
+command -v hdiutil >/dev/null 2>&1 || { echo "hdiutil not found; run on macOS" >&2; exit 1; }
+command -v osascript >/dev/null 2>&1 || { echo "osascript not found; run on macOS" >&2; exit 1; }
 
 mkdir -p "$STAGING/.background" "$DIST_DIR" assets
 
@@ -37,9 +40,9 @@ MOUNTPOINT="/Volumes/$VOL_NAME"
 hdiutil attach "$TMPDIR/tmp.dmg" -mountpoint "$MOUNTPOINT" -readwrite -noverify -noautoopen
 
 # Apply Finder styling
-osascript <<'EOF' || true
+osascript <<EOF || true
 tell application "Finder"
-  tell disk "MixtralWebGUI"
+  tell disk "$VOL_NAME"
     open
     set current view of container window to icon view
     set toolbar visible of container window to false

@@ -9,7 +9,7 @@ error() {
 # Install Ollama if missing
 if ! command -v ollama >/dev/null 2>&1; then
   echo "Downloading Ollama..."
-  curl -L https://ollama.ai/download/Ollama-darwin.zip -o /tmp/Ollama.zip || error "Failed to download Ollama"
+  curl -fsSL https://ollama.ai/download/Ollama-darwin.zip -o /tmp/Ollama.zip || error "Failed to download Ollama"
   unzip -q /tmp/Ollama.zip -d /Applications || error "Failed to unzip Ollama"
   rm -f /tmp/Ollama.zip
   if ! command -v ollama >/dev/null 2>&1; then
